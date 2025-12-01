@@ -1,0 +1,46 @@
+@page
+@model WebApp.Pages.RegisterModel
+@{
+    ViewData["Title"] = "Регистрация";
+}
+
+<h2>Регистрация</h2>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <p style="color: red;">@Model.ErrorMessage</p>
+}
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <p style="color: green;">@Model.SuccessMessage</p>
+}
+
+<form method="post">
+    <div>
+        <label for="name">Имя:</label><br>
+        <input type="text" id="name" name="name" required style="width: 100%; max-width: 400px;" />
+    </div>
+    <br>
+
+    <div>
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" required style="width: 100%; max-width: 400px;" />
+    </div>
+    <br>
+
+    <div>
+        <label for="password">Пароль:</label><br>
+        <input type="password" id="password" name="password" required style="width: 100%; max-width: 400px;" />
+    </div>
+    <br>
+
+    <div>
+        <label for="confirmPassword">Подтверждение пароля:</label><br>
+        <input type="password" id="confirmPassword" name="confirmPassword" required style="width: 100%; max-width: 400px;" />
+    </div>
+    <br>
+
+    <button type="submit">Зарегистрироваться</button>
+    <a href="/Login">Уже есть аккаунт? Войти</a>
+</form>

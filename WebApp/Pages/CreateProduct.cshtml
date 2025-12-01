@@ -1,0 +1,48 @@
+@page
+@model WebApp.Pages.CreateProductModel
+@{
+    ViewData["Title"] = "Создать продукт";
+}
+
+<h2>Создать продукт</h2>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <p style="color: red;">@Model.ErrorMessage</p>
+}
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <p style="color: green;">@Model.SuccessMessage</p>
+}
+
+<form method="post">
+    <div>
+        <label for="name">Название:</label><br>
+        <input type="text" id="name" name="name" required style="width: 100%; max-width: 400px;" />
+    </div>
+    <br>
+
+    <div>
+        <label for="description">Описание:</label><br>
+        <textarea id="description" name="description" rows="3" style="width: 100%; max-width: 400px;"></textarea>
+    </div>
+    <br>
+
+    <div>
+        <label for="price">Цена:</label><br>
+        <input type="number" id="price" name="price" step="0.01" min="0" required style="width: 100%; max-width: 400px;" />
+    </div>
+    <br>
+
+    <div>
+        <label for="isAvailable">
+            <input type="checkbox" id="isAvailable" name="isAvailable" checked />
+            Доступен для продажи
+        </label>
+    </div>
+    <br>
+
+    <button type="submit">Создать продукт</button>
+    <a href="/Products">Отмена</a>
+</form>

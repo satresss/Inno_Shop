@@ -1,0 +1,27 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-4">Добро пожаловать в InnoShop</h1>
+        <p class="lead">Интернет-магазин с микросервисной архитектурой</p>
+        
+        @if (Model.IsAuthenticated)
+        {
+            <div class="alert alert-success mt-4">
+                <p>Вы авторизованы!</p>
+                <a href="/Products">Перейти к продуктам</a>
+            </div>
+        }
+        else
+        {
+            <div class="mt-4">
+                <a href="/Login" class="btn btn-primary btn-lg me-2">Войти</a>
+                <a href="/Register" class="btn btn-outline-primary btn-lg">Регистрация</a>
+            </div>
+        }
+    </div>
+</div>

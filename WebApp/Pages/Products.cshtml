@@ -1,0 +1,163 @@
+@page
+@model WebApp.Pages.ProductsModel
+@{
+    ViewData["Title"] = "Продукты";
+}
+
+<h2>Продукты</h2>
+
+@if (Model.IsAuthenticated)
+{
+    <p><a href="/CreateProduct">Добавить продукт</a></p>
+}
+
+<!-- Форма фильтров -->
+<form method="get" class="search-form">
+    <div class="filter-row">
+        <div class="filter-group">
+            <label for="searchTerm">Поиск:</label>
+            <input type="text" id="searchTerm" name="searchTerm" value="@Model.SearchTerm"
+                   placeholder="Название или описание" />
+        </div>
+
+        <div class="filter-group">
+            <label for="minPrice">Мин. цена:</label>
+            <input type="number" id="minPrice" name="minPrice" value="@Model.MinPrice"
+                   step="0.01" min="0" placeholder="0" />
+        </div>
+
+        <div class="filter-group">
+            <label for="maxPrice">Макс. цена:</label>
+            <input type="number" id="maxPrice" name="maxPrice" value="@Model.MaxPrice"
+                   step="0.01" min="0" placeholder="∞" />
+        </div>
+
+        <div class="filter-group">
+            <label for="isAvailable">Доступность:</label>
+            <select id="isAvailable" name="isAvailable">
+                <option value="">Все</option>
+                <option value="true" selected="@(Model.IsAvailable == true)">Доступные</option>
+                <option value="false" selected="@(Model.IsAvailable == false)">Недоступные</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="pageSize">Показывать:</label>
+            <select id="pageSize" name="pageSize">
+                <option value="5" selected="@(Model.PageSize == 5)">5</option>
+                <option value="10" selected="@(Model.PageSize == 10)">10</option>
+                <option value="20" selected="@(Model.PageSize == 20)">20</option>
+                <option value="50" selected="@(Model.PageSize == 50)">50</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <button type="submit">Найти</button>
+            <a href="/Products" class="clear-link">Сбросить</a>
+        </div>
+    </div>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <p style="color: red;">@Model.ErrorMessage</p>
+}
+
+<!-- Информация о текущих фильтрах -->
+@if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.MinPrice.HasValue || Model.MaxPrice.HasValue || Model.IsAvailable.HasValue)
+{
+    <div class="current-filters">
+        <h4>Текущие фильтры:</h4>
+        <ul>
+            @if (!string.IsNullOrEmpty(Model.SearchTerm))
+            {
+                <li>Поиск: "@Model.SearchTerm"</li>
+            }
+            @if (Model.MinPrice.HasValue)
+            {
+                <li>Мин. цена: @Model.MinPrice.Value.ToString("C")</li>
+            }
+            @if (Model.MaxPrice.HasValue)
+            {
+                <li>Макс. цена: @Model.MaxPrice.Value.ToString("C")</li>
+            }
+            @if (Model.IsAvailable.HasValue)
+            {
+                <li>Доступность: @(Model.IsAvailable.Value ? "Доступные" : "Недоступные")</li>
+            }
+        </ul>
+    </div>
+}
+
+@if (Model.Products != null && Model.Products.Any())
+{
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Цена</th>
+                <th>Доступен</th>
+                <th>Создан</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model.Products)
+            {
+                <tr>
+                    <td>@product.Id</td>
+                    <td>@product.Name</td>
+                    <td>@product.Description</td>
+                    <td>@product.Price.ToString("C")</td>
+                    <td>@(product.IsAvailable ? "Да" : "Нет")</td>
+                    <td>@product.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Пагинация -->
+    <div class="pagination">
+        @if (Model.PageNumber > 1)
+        {
+            <a href="@BuildPageUrl(Model.PageNumber - 1)" class="page-link">« Предыдущая</a>
+        }
+
+        <span class="page-info">Страница @Model.PageNumber</span>
+
+        @if (Model.Products.Count == Model.PageSize)
+        {
+            <a href="@BuildPageUrl(Model.PageNumber + 1)" class="page-link">Следующая »</a>
+        }
+    </div>
+}
+else
+{
+    <p>Продукты не найдены</p>
+}
+
+@functions {
+    private string BuildPageUrl(int pageNumber)
+    {
+        var queryParams = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+            queryParams.Add($"searchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
+
+        if (Model.MinPrice.HasValue)
+            queryParams.Add($"minPrice={Model.MinPrice.Value}");
+
+        if (Model.MaxPrice.HasValue)
+            queryParams.Add($"maxPrice={Model.MaxPrice.Value}");
+
+        if (Model.IsAvailable.HasValue)
+            queryParams.Add($"isAvailable={Model.IsAvailable.Value.ToString().ToLower()}");
+
+        queryParams.Add($"pageNumber={pageNumber}");
+        queryParams.Add($"pageSize={Model.PageSize}");
+
+        var queryString = string.Join("&", queryParams);
+        return $"/Products?{queryString}";
+    }
+}

@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # SQL Server для UsersService
+  users-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: users-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - users-db-data:/var/opt/mssql
+    networks:
+      - innoshop-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # SQL Server для ProductService
+  products-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: products-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+      - MSSQL_PID=Express
+    ports:
+      - "1434:1433"
+    volumes:
+      - products-db-data:/var/opt/mssql
+    networks:
+      - innoshop-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong!Passw0rd -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # UsersService
+  users-service:
+    build:
+      context: ./UsersService
+      dockerfile: Dockerfile
+    container_name: users-service
+    ports:
+      - "5181:80"
+      - "7044:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=users-db,1433;Database=InnoShopUsers;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+      - Jwt__Issuer=InnoShopUsers
+      - Jwt__Audience=InnoShopClients
+      - Jwt__SecretKey=super_secret_key_at_least_32_chars_long_12345
+      - EmailSettings__Mail=Sarts5840@gmail.com
+      - EmailSettings__DisplayName=InnoShop Support
+      - EmailSettings__Password=lzsy trsd dvmm kfwu
+      - EmailSettings__Host=smtp.gmail.com
+      - EmailSettings__Port=587
+      - ApiSettings__ProductServiceUrl=http://products-service/api
+    depends_on:
+      users-db:
+        condition: service_healthy
+    networks:
+      - innoshop-network
+    restart: unless-stopped
+
+  # ProductService
+  products-service:
+    build:
+      context: ./ProductService
+      dockerfile: Dockerfile
+    container_name: products-service
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Server=products-db,1433;Database=InnoShopProducts;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+    depends_on:
+      products-db:
+        condition: service_healthy
+    networks:
+      - innoshop-network
+    restart: unless-stopped
+
+volumes:
+  users-db-data:
+  products-db-data:
+
+networks:
+  innoshop-network:
+    driver: bridge
+
